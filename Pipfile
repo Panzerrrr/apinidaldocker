@@ -4,6 +4,15 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
+fastapi = "*"
+uvicorn = "*"
+pylint = "*"
+pydantic = "*"
+coverage = "*"
+pandas = "*"
+numpy = "*"
+scikit-learn = "*"
+joblib = "*"
 
 [dev-packages]
 
