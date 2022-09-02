@@ -1,0 +1,51 @@
+# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
+# More GitHub Actions for Azure: https://github.com/Azure/actions
+
+name: Build and deploy container app to Azure Web App - apinidaldocker
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: 'ubuntu-latest'
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+
+    - name: Log in to registry
+      uses: docker/login-action@v1
+      with:
+        registry: https://apinidaldocker.azurecr.io/
+        username: ${{ secrets.AzureAppService_ContainerUsername_c811843c4c1844c0836fe994e353fe0d }}
+        password: ${{ secrets.AzureAppService_ContainerPassword_e75bf1ad159749e68c4a7afa4f841a1a }}
+
+    - name: Build and push container image to registry
+      uses: docker/build-push-action@v2
+      with:
+        push: true
+        tags: apinidaldocker.azurecr.io/${{ secrets.AzureAppService_ContainerUsername_c811843c4c1844c0836fe994e353fe0d }}/apinidaldocker:${{ github.sha }}
+        file: ./Dockerfile
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    environment:
+      name: 'production'
+      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+
+    steps:
+    - name: Deploy to Azure Web App
+      id: deploy-to-webapp
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: 'apinidaldocker'
+        slot-name: 'production'
+        publish-profile: ${{ secrets.AzureAppService_PublishProfile_76129334ca6f419aab88595f39583eff }}
+        images: 'apinidaldocker.azurecr.io/${{ secrets.AzureAppService_ContainerUsername_c811843c4c1844c0836fe994e353fe0d }}/apinidaldocker:${{ github.sha }}'
